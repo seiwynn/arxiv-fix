@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 import os
 import argparse
+import re
 
 """todo:
     all encoding in utf8
@@ -26,14 +27,9 @@ def mian():
     files_to_fix = get_file_names()
     for stuff in files_to_fix:
         actual_title = get_snake_title(stuff[:-4])
-
-        # not sure if the if else would work as expected
-        if actual_title:
-            new_name = actual_title + "_" + stuff
-            print(new_name)
-            os.rename(pdf_dir + stuff, pdf_dir +new_name)
-        else:
-            print('<' + stuff + '> won't be fixed')
+        new_name = actual_title + "_" + stuff
+        print(new_name)
+        os.rename(pdf_dir + stuff, pdf_dir +new_name)
 
 def get_args():
     # none actually implemented
@@ -65,9 +61,16 @@ def get_snake_title(paper_id):
     title = abstract.find('h1', 'title mathjax')
     ans = title.contents[1]
 
-    ans = ans.replace(' ', '_')
     full_snake_title = ans.lower()
-    return full_snake_title
+    return safe_filename(full_snake_title)
+	
+def safe_filename(filename):
+    illegal_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*', ' ']
+    for char in illegal_chars:
+        filename = filename.replace(char, '_')
+	# 有时候会连着两个非法字符也太弱智了
+    filename = re.sub(r'_+', '_', filename)
+    return filename
 
 
 if __name__ == "__main__":
