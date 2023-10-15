@@ -4,74 +4,82 @@ import os
 import argparse
 import re
 
-"""todo:
-    all encoding in utf8
+# Modern problems require modern solutions：
+# we still don't know why arxiv use urls as file names
 
-    # filtering: ignoring non-arxiv pdf
-    filtering: ignoring directories ending with a .pdf name
-    custom: trim name to length
-    custom: trim name to word count
-    custom: keep arxiv code or not
-    antiboom: illegal chars in title
 
-    how argparse work
-    implement actual params
-"""
-
-# 当代弱智问题要用当代弱智方案解决：<arxiv为什么要用它发布得爽我们用着便秘的pdf标题>
-
-pdf_dir = './demo/'
-
-def mian():
+def main():
     args = get_args()
-    files_to_fix = get_file_names()
-    for stuff in files_to_fix:
-        actual_title = get_snake_title(stuff[:-4])
-        new_name = actual_title + "_" + stuff
-        print(new_name)
-        os.rename(pdf_dir + stuff, pdf_dir +new_name)
 
-def get_args():
+    files_to_fix = get_file_names(args.directory)
+    for file_name in files_to_fix:
+        actual_title = get_snake_title(file_name[:-4])
+
+        # only rename if we get a title
+        if len(actual_title) > 0:
+            new_name = safe_filename(actual_title + "_" + file_name)
+
+            if args.verbose:
+                print(f"renaming {file_name} \n\tto {new_name}...")
+            os.rename(args.directory + file_name, args.directory + new_name)
+
+
+def get_args() -> argparse.Namespace:
     # none actually implemented
     parser = argparse.ArgumentParser(description='fix arxiv titles')
-    parser.add_argument('-dir', help='your directory of papers', default= './')
-    parser.add_argument('-tc', help='truncate by char length', default=-1)
-    parser.add_argument('-tw', help='truncate by word count', default=-1)
-    parser.add_argument('-v', help='verbose', default=False)
-    parser.add_argument('-b', help='backup your papers in said directory, ignore this arg to not backup', default='')
+    parser.add_argument(
+        '-dir', '--directory', help='your directory of papers', type=str, default='./demo/')
+    parser.add_argument(
+        '-v', '--verbose', help='toggle verbose output', action='store_true')
 
-def get_file_names():
-    everything = os.listdir(pdf_dir)
-    to_fix = []
-    for name in everything:
-        if name[-4:] == '.pdf':
-            to_fix.append(name)
-    return to_fix
+    # TODO: haven't implemented these
+    parser.add_argument(
+        '-cp', '--copy', help='copy new file name instead of renaming', action='store_true')
+    parser.add_argument(
+        '-r', '--recursive', help='recursive', action='store_true')
+    parser.add_argument(
+        '-t', '--truncate', help='truncate file name by char length, rounds down to the last word', type=int, default=40)
+
+    args = parser.parse_args()
+    return args
 
 
-def get_snake_title(paper_id):
+def get_file_names(directory: str) -> list[str]:
+    all_files = os.listdir(directory)
+    files_to_fix = []
+    for file_name in all_files:
+        if file_name[-4:] == '.pdf' and os.path.isfile(directory + file_name):
+            files_to_fix.append(file_name)
+    return files_to_fix
+
+
+def get_snake_title(paper_id: str) -> str:
     arxiv_head = 'https://arxiv.org/abs/'
-    result = requests.get(arxiv_head + paper_id)
-    if result.status_code != 200:
+    response = requests.get(arxiv_head + paper_id)
+    if response.status_code != 200:
         return ''
 
-    c = result.content
-    soup = bs(c, features="lxml")
+    # because I'm too lazy to install lxml
+    # soup = bs(response.content, features="lxml")
+    soup = bs(response.content, features="html.parser")
+
     abstract = soup.find('div', 'leftcolumn')
     title = abstract.find('h1', 'title mathjax')
     ans = title.contents[1]
 
     full_snake_title = ans.lower()
-    return safe_filename(full_snake_title)
-	
-def safe_filename(filename):
+    return full_snake_title
+
+
+# use this before renaming
+def safe_filename(filename: str) -> str:
     illegal_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*', ' ']
     for char in illegal_chars:
         filename = filename.replace(char, '_')
-	# 有时候会连着两个非法字符也太弱智了
+    # merge consecutive underscores
     filename = re.sub(r'_+', '_', filename)
     return filename
 
 
 if __name__ == "__main__":
-    mian()
+    main()
