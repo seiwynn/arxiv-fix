@@ -17,16 +17,22 @@ After:
 
 ## How to use
 
-Before you start, make sure you have the following stuff:
+Package installation:
 
--   Python 3 (although I guess 2 would work?)
--   Beautiful Soup 4
--   Requests
+```
+pip install -r requirements.txt
+```
 
-Once you're ready with all the packages above, 
+Once you're ready, 
 
--   Put the script in the same folder as your arxiv papers
--   open the command prompt in your current directory
--   make python run the script (usually with something that looks like `python arxiv_fix.py`)
+```
+python arxiv_fix.py 
+```
 
-And then you're done :)
+Or if you want some customization, try:
+
+```
+python arxiv_fix.py -h
+```
+
+And then you're done:star:
