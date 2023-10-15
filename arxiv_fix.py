@@ -34,9 +34,9 @@ def get_args() -> argparse.Namespace:
 
     # TODO: haven't implemented these
     parser.add_argument(
-        '-cp', '--copy', help='copy new file name instead of renaming', action='store_true')
+        '-cp', '--copy', help='copy to new file instead of renaming', action='store_true')
     parser.add_argument(
-        '-r', '--recursive', help='recursive', action='store_true')
+        '-r', '--recursive', help='toggle recursive (similar to rm -rf)', action='store_true')
     parser.add_argument(
         '-t', '--truncate', help='truncate file name by char length, rounds down to the last word', type=int, default=40)
 
