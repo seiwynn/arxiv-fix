@@ -25,7 +25,6 @@ def main():
 
 
 def get_args() -> argparse.Namespace:
-    # none actually implemented
     parser = argparse.ArgumentParser(description='fix arxiv titles')
     parser.add_argument(
         '-dir', '--directory', help='your directory of papers', type=str, default='./demo/')
@@ -35,8 +34,8 @@ def get_args() -> argparse.Namespace:
     # TODO: haven't implemented these
     parser.add_argument(
         '-cp', '--copy', help='copy to new file instead of renaming', action='store_true')
-    parser.add_argument(
-        '-r', '--recursive', help='toggle recursive (similar to rm -rf)', action='store_true')
+    # parser.add_argument(
+    #     '-r', '--recursive', help='toggle recursive (similar to rm -rf)', action='store_true')
     parser.add_argument(
         '-t', '--truncate', help='truncate file name by char length, rounds down to the last word', type=int, default=40)
 
